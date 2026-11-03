@@ -1,0 +1,15 @@
+# Undercards Deck Printer - Python dependencies
+#
+# Runtime:
+Flask>=3.0
+pillow>=10.0
+reportlab>=4.0
+requests>=2.31
+
+# Tests only (harmless at runtime):
+pytest>=8.0
+pypdf>=4.0
+
+# OPTIONAL - only needed for the /AllCards "sign-in harvest" feature:
+# The app works fully without it (bundled wiki-based database).
+playwright>=1.40

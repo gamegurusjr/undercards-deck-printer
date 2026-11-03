@@ -1,0 +1,8 @@
+# Runtime output lives only on the machine/container, never in git.
+__pycache__/
+*.pyc
+.pytest_cache/
+data/cache/
+data/jobs/
+data/browser_profile/
+data/allcards_raw.json

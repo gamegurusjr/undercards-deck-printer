@@ -1,0 +1,30 @@
+# Render.com blueprint for the cloud copy of Undercards Deck Printer.
+#
+# This folder (nonlocal/) is the ONLY thing that gets pushed to the host repo;
+# the local tool in the repo root stays untouched and always binds to
+# 127.0.0.1.  On Render: New -> Blueprint -> connect the repo that contains
+# just this folder, and it will pick up these settings automatically.
+#
+# IMPORTANT: Render asks for UC_ACCESS_TOKEN's value when the blueprint is
+# applied (sync: false) - it is never committed to git.
+
+services:
+  - type: web
+    name: undercards-deck-printer
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.webapp
+    healthCheckPath: /api/health
+    envVars:
+      # Must listen on all interfaces for Render's router to reach it.
+      - key: UC_BIND
+        value: 0.0.0.0
+      # The free plan is single-user anyway; harmless but explicit.
+      - key: WEB_CONCURRENCY
+        value: 1
+      # Personal gate token. Render will prompt you to enter the real value
+      # during blueprint creation; leaving it unset in the dashboard instead
+      # means the deployment is open to anyone who knows the URL.
+      - key: UC_ACCESS_TOKEN
+        sync: false

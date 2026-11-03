@@ -1,0 +1,297 @@
+/* Undercards Deck Printer - dark, printable, quiet.
+   Chrome uses the game's own Determination Mono web font (served from the
+   local cache via /api/font/DTM-Mono.otf); body copy stays in a plain
+   readable system sans so hints/tables keep flowing nicely. */
+@font-face {
+  font-family: "UC Mono";
+  src: url("/api/font/DTM-Mono.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --bg: #0a0c11;
+  --panel: #151a21;
+  --panel2: #1b212b;
+  --panel3: #0c1016;
+  --line: #262d38;
+  --line-hi: #323b49;
+  --text: #dfe6f2;
+  --dim: #8fa0b3;
+  --faint: #66768a;
+  --accent: #00d0ff;
+  --accent2: #41fcff;
+  --soul: #ffd800;
+  --good: #0dd000;
+  --warn: #ffcc00;
+  --bad: #f0003c;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }   /* JS toggles the hidden attr; never let layout styles resurrect it */
+html, body { margin: 0; padding: 0; }
+body {
+  background:
+    radial-gradient(1100px 380px at 50% -120px, #10202c 0%, transparent 70%),
+    var(--bg);
+  color: var(--text);
+  font: 15px/1.55 "Segoe UI", system-ui, sans-serif;
+}
+::selection { background: #0f5566; color: var(--accent2); }
+
+.mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 13px; }
+h1, h2, h3 { margin: 0 0 8px; font-weight: 400; font-family: "UC Mono", Consolas, monospace; }
+h2 { font-size: 17px; letter-spacing: .5px; color: #fff; }
+h3 { font-size: 14px; letter-spacing: .4px; }
+a { color: var(--accent); }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--panel3); }
+::-webkit-scrollbar-thumb { background: #2b3542; border-radius: 8px; border: 2px solid var(--panel3); }
+::-webkit-scrollbar-thumb:hover { background: #3a4757; }
+
+/* ---------------------------------------------------------- top bar */
+.topbar {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, #171d26 0%, #12171e 100%);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 #ffffff0a inset, 0 6px 18px #0006;
+}
+.brand { display: flex; align-items: center; gap: 14px; margin-right: auto; }
+.logo {
+  font-size: 30px; color: var(--soul); line-height: 1;
+  filter:
+    drop-shadow(0 0 10px #ffd80030)
+    drop-shadow(0 0 22px #ffd80018);
+}
+.topbar h1 { font-size: 21px; margin: 0; color: #fff; letter-spacing: .5px; }
+.sub { margin: 2px 0 0; color: var(--dim); font-size: 13px; }
+.topbtns { display: flex; gap: 8px; }
+
+.dbinfo {
+  font-family: "UC Mono", Consolas, monospace;
+  font-size: 12px; color: var(--dim); max-width: 430px; line-height: 1.6;
+}
+.dbinfo b { color: var(--text); }
+.dbinfo a { color: var(--faint); }
+
+main { max-width: 1280px; margin: 0 auto; padding: 18px 24px 46px; }
+
+/* ---------------------------------------------------------- panels */
+.panel {
+  background:
+    linear-gradient(180deg, #ffffff06 0%, transparent 46px),
+    var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px; margin-bottom: 18px;
+  box-shadow: 0 10px 30px #0005;
+}
+.columns { display: flex; gap: 18px; align-items: stretch; flex-wrap: wrap; }
+.col-main { flex: 1 1 640px; min-width: 0; }
+.col-side { flex: 0 0 310px; align-self: flex-start; }
+
+/* ---------------------------------------------------------- controls */
+button, select, textarea, input[type="text"] { font: inherit; color: inherit; }
+button {
+  border: 1px solid var(--line-hi); background: linear-gradient(180deg, #202732, #1a2028);
+  padding: 8px 15px; border-radius: 9px; cursor: pointer;
+  font-family: "UC Mono", Consolas, monospace; font-size: 13.5px; color: var(--text);
+  transition: background .12s, border-color .12s, transform .12s, box-shadow .12s;
+}
+button:hover { border-color: var(--accent); color: #fff; }
+button:active { transform: translateY(1px); }
+button.primary {
+  background: linear-gradient(180deg, #ffe14d 0%, #f7ca00 100%);
+  border-color: #a58500; color: #1a1400; font-weight: 700;
+  box-shadow: 0 2px 12px #ffd80022;
+}
+button.primary:hover { background: linear-gradient(180deg, #ffe966 0%, #ffd400 100%); color: #000; }
+button.danger { background: #3d0d15; border-color: #6b1825; color: #ffb3c0; }
+button.danger:hover { background: #4b111b; color: #ffd3dc; border-color: #a32738; }
+button.ghost { background: transparent; }
+button.ghost:hover { background: #ffffff08; }
+button:disabled { opacity: .4; cursor: default; transform: none; }
+:is(button, select, textarea, input, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+textarea {
+  width: 100%; background: var(--panel3); border: 1px solid var(--line);
+  border-radius: 9px; padding: 11px 12px; color: #cfe3ef;
+  resize: vertical; caret-color: var(--accent);
+  font-family: Consolas, monospace; font-size: 13px; line-height: 1.5;
+}
+textarea:focus { outline: none; border-color: #0f7895; box-shadow: 0 0 0 3px #00d0ff14; }
+textarea::placeholder { color: #55647a; }
+
+.row { display: flex; gap: 10px; align-items: center; margin-top: 11px; flex-wrap: wrap; }
+.hint { color: var(--dim); font-size: 12.5px; }
+.missbox .hint { color: #c98f9c; }
+
+.errorbox {
+  margin-top: 10px; padding: 10px 13px; border-radius: 9px;
+  background: #2c0b11; border: 1px solid #6b1825; color: #ffb3c0;
+  font-family: Consolas, monospace; font-size: 12.5px; white-space: pre-wrap;
+}
+.errorbox b { display: block; margin-bottom: 4px; font-family: "UC Mono", monospace; letter-spacing: .4px; }
+
+/* ---------------------------------------------------------- progress */
+.progressline { display: flex; align-items: center; gap: 12px; }
+.progress {
+  flex: 1; height: 10px; border-radius: 7px;
+  background: var(--panel3); overflow: hidden;
+  border: 1px solid var(--line);
+}
+.bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #0f5566, var(--accent) 70%, #7de8ff);
+  box-shadow: 0 0 12px #00d0ff55;
+  transition: width .3s;
+}
+#progress-detail { color: var(--dim); font-size: 12.5px; }
+
+.log {
+  margin: 10px 0 0; max-height: 130px; overflow: auto;
+  background: var(--panel3); border: 1px solid var(--line); border-radius: 9px;
+  padding: 8px 11px; font: 12px/1.5 Consolas, monospace; color: #8b9bad;
+  white-space: pre-wrap;
+}
+
+.chip {
+  font-family: "UC Mono", Consolas, monospace;
+  font-size: 11.5px; color: var(--dim);
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 3px 11px; background: var(--panel2); vertical-align: middle;
+}
+
+/* ---------------------------------------------------------- card grid */
+.cardgrid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  padding-top: 6px;
+}
+.cardcell { position: relative; text-align: center; }
+.cardcell img {
+  width: 100%; border-radius: 8px; display: block;
+  border: 1px solid #333a45; background: #000;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.cardcell:hover img {
+  transform: translateY(-3px);
+  border-color: #6f5f10;
+  box-shadow: 0 10px 22px #000a, 0 0 0 1px #ffd80030;
+}
+.cardcell img[alt=""] { filter: none; }
+.cellmeta {
+  margin-top: 5px; font-size: 12px; color: var(--dim);
+  font-family: "UC Mono", monospace; letter-spacing: .2px;
+}
+.qtybadge {
+  position: absolute; top: -7px; right: -7px;
+  background: linear-gradient(180deg, #ffe14d, #f7ca00); color: #1a1400;
+  font-family: "UC Mono", monospace; font-weight: 700;
+  border-radius: 13px; padding: 1px 9px; font-size: 13px;
+  box-shadow: 0 2px 8px #0009, 0 0 0 1px #d9ad00;
+}
+.missing { outline: 2px solid var(--bad); outline-offset: -2px; }
+
+/* ---------------------------------------------------------- missing art */
+.missbox {
+  margin-top: 16px; padding: 13px 15px;
+  border: 1px solid #6b1825; background: #230a10; border-radius: 11px;
+  box-shadow: 0 0 0 1px #5b0f1a inset;
+}
+.missbox h3 { color: #ffb3c0; letter-spacing: .5px; }
+#miss-text { margin: 0 0 4px; font-size: 13.5px; color: #e8c9d0; }
+#miss-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+#miss-table td {
+  border-top: 1px solid #4d1622; padding: 5px 8px; vertical-align: top; color: #d7b6bf;
+}
+#miss-table td:first-child { white-space: nowrap; font-weight: 600; color: #ffb3c0; }
+
+/* ---------------------------------------------------------- sidebar */
+aside label {
+  display: block; margin: 12px 0 3px;
+  font-family: "UC Mono", Consolas, monospace;
+  font-size: 12px; color: var(--dim); letter-spacing: .4px;
+}
+aside select {
+  width: 100%; margin-top: 2px; background: var(--panel3);
+  border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; color: var(--text);
+}
+aside select:hover { border-color: var(--line-hi); }
+aside input[type="range"] { width: 100%; accent-color: var(--soul); }
+aside .check {
+  display: flex; align-items: center; gap: 9px; margin-top: 11px; color: var(--text);
+  font-family: "UC Mono", monospace; font-size: 12.5px;
+}
+aside .check input { accent-color: var(--soul); width: 15px; height: 15px; }
+#gapval { color: var(--soul); }
+
+.pagecount { margin-top: 12px; line-height: 1.75; color: var(--dim); }
+.pagecount b, .pagecount strong { color: var(--text); }
+.invariant {
+  margin-top: 12px; padding: 9px 11px; font-size: 12.5px; color: var(--dim);
+  border: 1px dashed #5a4d10; border-radius: 9px;
+  background: linear-gradient(180deg, #191309, #131109);
+}
+.invariant strong { color: var(--soul); font-family: "UC Mono", monospace; letter-spacing: .3px; }
+.invariant .mono { color: #e6d78f; }
+
+.dl { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+.dl a {
+  display: block; text-align: center; text-decoration: none;
+  padding: 10px 12px; border-radius: 9px;
+  font-family: "UC Mono", monospace; font-weight: 700; font-size: 13.5px;
+  transition: background .12s, transform .12s, box-shadow .12s;
+}
+.dl a.primary {
+  background: linear-gradient(180deg, #ffe14d 0%, #f7ca00 100%);
+  border: 1px solid #a58500; color: #1a1400;
+  box-shadow: 0 2px 14px #ffd80022;
+}
+.dl a.primary:hover { background: linear-gradient(180deg, #ffe966, #ffd400); }
+.dl a:active { transform: translateY(1px); }
+.dl a.ghost { border: 1px solid var(--line-hi); color: var(--text); }
+.dl a.ghost:hover { border-color: var(--accent); color: var(--accent2); }
+
+/* ---------------------------------------------------------- sheets */
+.tabrow { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab {
+  border-radius: 16px; padding: 6px 15px; font-size: 12.5px;
+  font-family: "UC Mono", monospace; letter-spacing: .3px;
+}
+.tab:hover { color: #fff; border-color: var(--line-hi); }
+.tab.active {
+  background: linear-gradient(180deg, #ffe14d, #f7ca00);
+  color: #1a1400; border-color: #a58500; font-weight: 700;
+}
+
+.pages {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+.pages figure { margin: 0; }
+.pages img {
+  width: 100%; border: 1px solid #39414d; border-radius: 8px;
+  background: #e8e8e8;
+  box-shadow: 0 12px 30px #0007;
+}
+.pages figcaption {
+  font-family: "UC Mono", monospace; font-size: 11.5px;
+  color: var(--dim); padding-top: 6px; letter-spacing: .3px;
+}
+
+/* ---------------------------------------------------------- harvest */
+#harvest-status { margin-top: 10px; color: var(--dim); font-size: 12.5px; }
+
+footer {
+  color: #5d6b7a; font-size: 12px; text-align: center;
+  padding: 24px 12px 12px; line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .topbar { flex-direction: column; align-items: flex-start; }
+  .col-side { flex: 1 1 300px; }
+}

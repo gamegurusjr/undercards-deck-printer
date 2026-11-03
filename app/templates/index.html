@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undercards Deck Printer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffd800' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.74-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">&#9829;</span>
+    <div>
+      <h1>Undercards Deck Printer</h1>
+      <p class="sub">Paste a deck code &rarr; real card faces &rarr; print-ready PDF at a fixed 2.5&times;3.5&nbsp;in.</p>
+    </div>
+  </div>
+  <div class="dbinfo" id="dbinfo">loading&hellip;</div>
+  <div class="topbtns">
+    <button id="btn-db-refresh" class="ghost" title="Politely re-read the wiki fallback (CC BY-SA) and the official translation file.">Refresh card database</button>
+    <button id="btn-harvest" class="ghost" title="Optional: fetch /AllCards through YOUR OWN signed-in session (Playwright window).">Sign-in harvest (/AllCards)</button>
+  </div>
+</header>
+
+<main>
+
+<section class="panel" id="panel-input">
+  <h2>1 &middot; Deck code</h2>
+  <textarea id="code" rows="4" spellcheck="false"
+            placeholder="Paste the base64 deck code here, or the whole deck URL ending in ?code=..."></textarea>
+  <div class="row">
+    <button id="btn-parse" class="primary">Print preview</button>
+    <button id="btn-clear" class="ghost">Clear</button>
+    <span class="hint">duplicates and order are preserved exactly &middot; artifacts are never printed unless you enable them below</span>
+  </div>
+  <div class="errorbox" id="parse-error" hidden></div>
+</section>
+
+<section class="panel" id="panel-progress" hidden>
+  <h2 id="progress-title">Working&hellip;</h2>
+  <div class="progressline"><div class="progress"><div class="bar" id="bar"></div></div>
+    <span id="progress-detail" class="mono"></span></div>
+  <pre id="joblog" class="log"></pre>
+</section>
+
+<section class="columns">
+
+  <section class="panel col-main" id="panel-deck" hidden>
+    <h2>2 &middot; Deck preview <span id="deck-summary" class="chip"></span></h2>
+    <div id="deck-grid" class="cardgrid"></div>
+    <div class="missbox" id="missbox" hidden>
+      <h3>Missing art &mdash; the PDF is intentionally blocked</h3>
+      <p id="miss-text"></p>
+      <table id="miss-table"></table>
+      <div class="row">
+        <button id="btn-proceed" class="danger">Print anyway (with MISSING-ART placeholders)</button>
+        <button id="btn-stop" class="ghost">Don't print</button>
+      </div>
+      <p class="hint">Placeholders are clearly striped with red MISSING ART text - nothing is silently substituted.</p>
+    </div>
+  </section>
+
+  <aside class="panel col-side" id="panel-settings" hidden>
+    <h2>3 &middot; Print settings</h2>
+    <label>Paper
+      <select id="set-paper">
+        <option value="letter">Letter (US)</option>
+        <option value="a4">A4</option>
+      </select>
+    </label>
+    <label>Orientation
+      <select id="set-orientation">
+        <option value="landscape">Landscape - 4&times;2</option>
+        <option value="portrait">Portrait - 3&times;2</option>
+      </select>
+    </label>
+    <label>Gap between cards: <span id="gapval" class="mono">4.0</span>&nbsp;mm
+      <input id="set-gap" type="range" min="0" max="10" step="0.5" value="4">
+    </label>
+    <label class="check"><input id="set-cut" type="checkbox" checked> cutting guides + crop marks</label>
+    <label class="check"><input id="set-artifacts" type="checkbox"> also make the optional artifact sheet</label>
+    <div class="pagecount mono" id="pagecount"></div>
+    <div class="invariant">
+      <strong>Hard invariant:</strong> cards are always exactly
+      <span class="mono">180&times;252&nbsp;pt</span> (<span class="mono">63.5&times;88.9&nbsp;mm</span>).
+      Bigger decks only add pages - the size never changes.
+    </div>
+    <div class="dl">
+      <a id="dl-deck" class="primary" download hidden>Download deck PDF</a>
+      <a id="dl-artifacts" class="ghost" download hidden>Download artifact sheet</a>
+    </div>
+  </aside>
+
+</section>
+
+<section class="panel" id="panel-pages" hidden>
+  <h2>4 &middot; Sheet previews</h2>
+  <div class="tabrow">
+    <button class="tab active" data-which="deck">Deck sheets</button>
+    <button class="tab" data-which="artifacts" id="tab-artifacts" hidden>Artifact sheets</button>
+  </div>
+  <div id="pages" class="pages"></div>
+</section>
+
+<section class="panel" id="panel-harvest" hidden>
+  <h2>Optional &middot; authoritative /AllCards harvest</h2>
+  <p class="hint">Opens a real browser window; you log into <em>your own</em> account and the app performs
+    exactly the same <span class="mono">GET /AllCards</span> request the game client itself performs -
+    no credential handling, no challenge bypassing, nothing leaves this machine.</p>
+  <div class="row">
+    <button id="harvest-start" class="primary">Open browser &amp; fetch with my login</button>
+    <button id="harvest-cancel" class="ghost">Cancel</button>
+  </div>
+  <div id="harvest-status" class="mono"></div>
+  <pre id="harvest-log" class="log"></pre>
+</section>
+
+<footer>
+  Local personal tool. Card names/descriptions are rendered with the game's own translation file;
+  metadata fallback from the Undercards wiki (CC BY-SA); card art &copy; the Undercards authors -
+  distributed user-to-user only, no commercial use, nothing published by this app.
+</footer>
+
+</main>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
