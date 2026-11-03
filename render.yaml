@@ -5,8 +5,9 @@
 # 127.0.0.1.  On Render: New -> Blueprint -> connect the repo that contains
 # just this folder, and it will pick up these settings automatically.
 #
-# IMPORTANT: Render asks for UC_ACCESS_TOKEN's value when the blueprint is
-# applied (sync: false) - it is never committed to git.
+# The deployment is PUBLIC by default (no login prompt for visitors).  To
+# lock it down later, uncomment the UC_ACCESS_TOKEN block at the bottom (or
+# add the variable in Render's dashboard) - see README.
 
 services:
   - type: web
@@ -20,11 +21,10 @@ services:
       # Must listen on all interfaces for Render's router to reach it.
       - key: UC_BIND
         value: 0.0.0.0
-      # The free plan is single-user anyway; harmless but explicit.
+      # The free plan runs a single process anyway; explicit is fine.
       - key: WEB_CONCURRENCY
         value: 1
-      # Personal gate token. Render will prompt you to enter the real value
-      # during blueprint creation; leaving it unset in the dashboard instead
-      # means the deployment is open to anyone who knows the URL.
-      - key: UC_ACCESS_TOKEN
-        sync: false
+      # Optionally lock the deployment so only people with your secret can
+      # use it.  uncomment both lines to be prompted for a value on deploy:
+      # - key: UC_ACCESS_TOKEN
+      #   sync: false

@@ -49,17 +49,23 @@ What is different here, and why:
 
 | Thing | Root copy | This copy |
 |---|---|---|
-| Access | always open on `127.0.0.1` | optional **`UC_ACCESS_TOKEN` gate** (Basic-username/-password or `Bearer`) |
+| Access | always open on `127.0.0.1` | **public by default**; optional `UC_ACCESS_TOKEN` lock-in (Basic username/password or `Bearer`) |
 | Bind | hard-wired `127.0.0.1` | `UC_BIND=0.0.0.0` so the host's router can reach it |
 | Port | `UC_PORT` (default 8952) | `PORT` (set by the host) → `UC_PORT` → 8952 |
 | Harvest | optional Playwright window | **disabled** (no Playwright in requirements; `/api/harvest/start` replies 400 cleanly) |
 | Disk | persistent | ephemeral: brand-new hosts start with the bundled `data/db.json` / `data/en.json`; the card cache, UI-refresh results and job folders reset on every restart |
 
-The gate is **opt-in** — without `UC_ACCESS_TOKEN` in the environment this
-copy behaves open, exactly like the local tool. Render's blueprint
-(`render.yaml`) has the variable declared with `sync: false`, so Render
-forces you to type a token value when creating the service; nothing lands in
-git.
+Anyone with the deployed URL can use it, no login prompt. If you ever want
+it private again, add one env var in the host's dashboard:
+
+```
+UC_ACCESS_TOKEN = <your secret string>
+```
+
+and every request must then present that token (Basic username — or
+password — or `Authorization: Bearer <token>`); `/api/health` stays open for
+the host's liveness probe. The value is re-read per request, so removing it
+takes effect on the next deploy/restart, and it never has to live in git.
 
 ### Step-by-step (Render.com free tier; your account, your click)
 
@@ -71,25 +77,20 @@ git.
    ```
 3. On <https://render.com> → **New → Blueprint** → pick the repo. Render reads
    `render.yaml` (service, build/start commands, health check at
-   `/api/health`).
-4. When prompted, paste a personal token value for `UC_ACCESS_TOKEN`
-   (e.g. a long random string in a password manager — not a password you
-   reuse). Then **Create**.
-5. First build takes a few minutes; afterwards the URL is
-   `https://<service>.onrender.com`. The browser will show a Basic-auth
-   prompt — **the token itself is the username**, password can be anything
-   (or use `Authorization: Bearer <token>`).
-6. Checking it works:
+   `/api/health`) and just asks you to confirm — there is no token step.
+4. **Create.** First build takes a few minutes; afterwards the URL is
+   `https://<service>.onrender.com`, open to anyone you share it with.
+5. Checking it works:
    ```powershell
-   curl.exe -u "<token>:x" https://<service>.onrender.com/api/health
+   curl.exe https://<service>.onrender.com/api/health
    ```
-   without the token you must get a `401`.
 
 Free-tier caveats (honest, documented): the service sleeps after ~15 minutes
-idle (first visitor waits ~30–60 s), the disk is **ephemeral** as listed
-above, and no Playwright means the sign-in harvest button will politely
-refuse on the hosted copy. Nothing is ever uploaded anywhere else; the PDF
-is still generated on the spot and served only to the requester.
+idle (first visitor waits ~30–60 s — a free uptime monitor pinging
+`/api/health` every 10 min keeps it warm), the disk is **ephemeral** as
+listed above, and no Playwright means the sign-in harvest button will
+politely refuse on the hosted copy. Nothing is ever uploaded anywhere else;
+the PDF is still generated on the spot and served only to the requester.
 
 *Nothing is published by this repo itself — steps 1–5 are yours to perform;
 until then the only working copy remains this machine's localhost tool.*
